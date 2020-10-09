@@ -4,7 +4,6 @@
   box-sizing: border-box;
 }
 body {
-  padding: 10px;
   margin: 0;
   min-height: 100vh;
   display: flex;
@@ -13,6 +12,10 @@ body {
   align-items: center;
   background-color: #fdfdfd;
   font-family: 'Arial', sans-serif;
+}
+
+header > h1{
+  font-family: 'Roboto', sans-serif;
 }
 
 .image-container {
@@ -38,6 +41,10 @@ body {
   padding: 1rem;
   border-radius: 0.5rem;
   box-shadow: 0 0.75rem 1.5rem rgba(19, 19, 19, 0.03);
+}
+
+.container:first-child {
+  margin-top: auto;
 }
 
 .dropzone {
@@ -128,6 +135,25 @@ body {
   border-width: 0.625rem;
   border-style: solid;
   border-color: #f9f9fb #f9f9fb #b8bec9 #b8bec9;
+}
+
+footer {
+  width: 100%;
+  background-color: #ddd;
+  padding: 20px;
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+footer .github-link {
+  padding: 15px 20px;
+  border-radius: 5px;
+  background-color: #333;
+  font-size: 14px;
+  color: white;
+  text-decoration: none;
 }
 
 .download-btn {

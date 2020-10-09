@@ -5,10 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Voronoi</title>
+  	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet"> 
 	<link rel="stylesheet" href="assets/css/style.css">
 	<link rel="icon" type="image/png" href="assets/img/favicon.png">
 </head>
 <body>
+	<header>
+		<h1>Voronoi Image Converter</h1>
+	</header>
 	<div class="container">
 		<div class="image-container">
 			<img id="genetic-image" class="image" src="assets/img/sunflower.jpg" alt="Copied image">
@@ -28,7 +32,12 @@
 			</label>
 			<input id="files" name="files[]" type="file" class="file-input" accept="image/x-png,image/jpeg">
 		</div>
-	</div>
+    </div>
+    <footer>
+        <a href="https://github.com/KonradLinkowski/Voronoi" target="_blank" class="github-link">
+            View on Github
+        </a>
+    </footer>
 	<script src="assets/js/voronoi.js" type="module"></script>
 </body>
 </html>
