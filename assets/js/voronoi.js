@@ -10,6 +10,14 @@ let mainImageData = getImageData(image);
 
 voronoi();
 
+const button = document.getElementById('btn-download');
+
+button.addEventListener('click', (e) => {
+  const image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+
+  button.href = image;
+});
+
 const dropArea = document.getElementById("dropzone");
 
 ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
@@ -158,6 +166,7 @@ function getImageData(image) {
   helpContext.drawImage(image, 0, 0);
   const data = helpContext.getImageData(0, 0, image.width, image.height);
   helpContext.clearRect(0, 0, helpCanvas.width, helpCanvas.height);
+
   return data;
 }
 
