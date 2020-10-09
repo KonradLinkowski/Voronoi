@@ -10,10 +10,10 @@ let mainImageData = getImageData(image);
 
 voronoi();
 
-var button = document.getElementById('btn-download');
+const button = document.getElementById('btn-download');
 
-button.addEventListener('click', function (e) {
-  var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+button.addEventListener('click', (e) => {
+  const image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
 
   button.href = image;
 });
