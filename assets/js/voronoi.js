@@ -5,12 +5,18 @@ const ctx = canvas.getContext("2d");
 const helpCanvas = document.createElement("canvas");
 const helpContext = helpCanvas.getContext("2d");
 
+// settings
+let pointsToUse = 500;
+
 resizeCanvas(image.width, image.height);
 let mainImageData = getImageData(image);
 
-voronoi();
-
 const dropArea = document.getElementById("dropzone");
+const showDotsCheckbox = document.getElementById("showDotsCheckbox");
+const numPointsSlider = document.getElementById("numPointsSlider");
+const rerunBtn = document.getElementById("rerunBtn");
+
+voronoi();
 
 ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
   dropArea.addEventListener(eventName, preventDefaults, false);
@@ -25,6 +31,11 @@ const dropArea = document.getElementById("dropzone");
 
 dropArea.addEventListener("drop", handleDrop, false);
 dropArea.addEventListener("input", handleChange, false);
+
+numPointsSlider.oninput = function () {
+  pointsToUse = 10000 - this.value || 1;
+};
+rerunBtn.addEventListener("click", voronoi);
 
 function preventDefaults(e) {
   e.preventDefault();
@@ -71,7 +82,7 @@ function handleFiles(file) {
 
 function voronoi() {
   const { width, height } = mainImageData;
-  const points = Array((mainImageData.data.length / (4 * 500)) | 0)
+  const points = Array((mainImageData.data.length / pointsToUse) | 0)
     .fill(0)
     .map((_, i) => ({
       index: i,
@@ -113,8 +124,10 @@ function voronoi() {
 
   ctx.putImageData(imageData, 0, 0);
   points.forEach((point) => {
-    ctx.fillStyle = "black";
-    ctx.fillRect(point.x, point.y, 2, 2);
+    if (showDotsCheckbox?.checked) {
+      ctx.fillStyle = "black";
+      ctx.fillRect(point.x, point.y, 2, 2);
+    }
   });
 
   function average(pixels) {
