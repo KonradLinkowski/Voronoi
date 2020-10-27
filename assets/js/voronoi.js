@@ -17,6 +17,8 @@ const numPointsSlider = document.getElementById("numPointsSlider");
 const rerunBtn = document.getElementById("rerunBtn");
 
 voronoi();
+updatePoints();
+
 
 ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
   dropArea.addEventListener(eventName, preventDefaults, false);
@@ -32,11 +34,16 @@ voronoi();
 dropArea.addEventListener("drop", handleDrop, false);
 dropArea.addEventListener("input", handleChange, false);
 
-numPointsSlider.oninput = function () {
-  pointsToUse = 10000 - this.value || 1;
-};
+numPointsSlider.addEventListener("input", (e) => {
+  pointsToUse = 10000 - e.target.value || 1;
+  
+  updatePoints();
+});
 rerunBtn.addEventListener("click", voronoi);
 
+function updatePoints(){
+  document.getElementById("pointsChosen").innerHTML = pointsToUse;
+}
 function preventDefaults(e) {
   e.preventDefault();
   e.stopPropagation();
@@ -82,7 +89,7 @@ function handleFiles(file) {
 
 function voronoi() {
   const { width, height } = mainImageData;
-  const points = Array((mainImageData.data.length / pointsToUse) | 0)
+  const points = Array((pointsToUse) | 0)
     .fill(0)
     .map((_, i) => ({
       index: i,
@@ -123,12 +130,12 @@ function voronoi() {
   });
 
   ctx.putImageData(imageData, 0, 0);
-  points.forEach((point) => {
-    if (showDotsCheckbox?.checked) {
+  if (showDotsCheckbox?.checked) {
+    points.forEach((point) => {
       ctx.fillStyle = "black";
       ctx.fillRect(point.x, point.y, 2, 2);
-    }
-  });
+    });
+  }
 
   function average(pixels) {
     let sum = [0, 0, 0];
