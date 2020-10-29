@@ -5,10 +5,19 @@ const ctx = canvas.getContext("2d");
 const helpCanvas = document.createElement("canvas");
 const helpContext = helpCanvas.getContext("2d");
 
+// settings
+let pointsToUse = 500;
+
 resizeCanvas(image.width, image.height);
 let mainImageData = getImageData(image);
 
+const dropArea = document.getElementById("dropzone");
+const showDotsCheckbox = document.getElementById("showDotsCheckbox");
+const numPointsSlider = document.getElementById("numPointsSlider");
+const rerunBtn = document.getElementById("rerunBtn");
+
 voronoi();
+updatePoints();
 
 const button = document.getElementById('btn-download');
 
@@ -17,8 +26,6 @@ button.addEventListener('click', (e) => {
 
   button.href = image;
 });
-
-const dropArea = document.getElementById("dropzone");
 
 ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
   dropArea.addEventListener(eventName, preventDefaults, false);
@@ -34,6 +41,16 @@ const dropArea = document.getElementById("dropzone");
 dropArea.addEventListener("drop", handleDrop, false);
 dropArea.addEventListener("input", handleChange, false);
 
+numPointsSlider.addEventListener("input", (e) => {
+  pointsToUse = 10000 - e.target.value || 1;
+  
+  updatePoints();
+});
+rerunBtn.addEventListener("click", voronoi);
+
+function updatePoints(){
+  document.getElementById("pointsChosen").innerHTML = pointsToUse;
+}
 function preventDefaults(e) {
   e.preventDefault();
   e.stopPropagation();
@@ -79,7 +96,7 @@ function handleFiles(file) {
 
 function voronoi() {
   const { width, height } = mainImageData;
-  const points = Array((mainImageData.data.length / (4 * 500)) | 0)
+  const points = Array((pointsToUse) | 0)
     .fill(0)
     .map((_, i) => ({
       index: i,
@@ -120,10 +137,12 @@ function voronoi() {
   });
 
   ctx.putImageData(imageData, 0, 0);
-  points.forEach((point) => {
-    ctx.fillStyle = "black";
-    ctx.fillRect(point.x, point.y, 2, 2);
-  });
+  if (showDotsCheckbox?.checked) {
+    points.forEach((point) => {
+      ctx.fillStyle = "black";
+      ctx.fillRect(point.x, point.y, 2, 2);
+    });
+  }
 
   function average(pixels) {
     let sum = [0, 0, 0];

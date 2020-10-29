@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,7 +22,36 @@
 	</div>
 	<div>
 		<a href="#" class="download-btn" id="btn-download">Download image</a>
-	</div>
+  </div>
+  
+  <div class="container">
+    <div class="settings-container">
+      <div>
+        <label>
+          <input id="showDotsCheckbox" type="checkbox" checked />Show dots
+        </label>
+      </div>
+
+      <div>
+        <label
+          ><input
+            type="range"
+            min="100"
+            max="10000"
+            value="9500"
+            id="numPointsSlider"
+          />
+          <br />
+          <span id="pointsChosen"></span> Points</label
+        >
+      </div>
+
+      <div>
+        <button id="rerunBtn">Re-run</button>
+      </div>
+    </div>
+  </div>
+
 	<div class="container">
 		<div class="dropzone" id="dropzone">
 			<label for="files" class="dropzone-container">
