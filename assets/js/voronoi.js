@@ -15,6 +15,7 @@ const dropArea = document.getElementById("dropzone");
 const showDotsCheckbox = document.getElementById("showDotsCheckbox");
 const numPointsSlider = document.getElementById("numPointsSlider");
 const rerunBtn = document.getElementById("rerunBtn");
+const progressBar = document.getElementById('progress-bar-container');
 
 voronoi();
 updatePoints();
@@ -95,82 +96,92 @@ function handleFiles(file) {
 }
 
 function voronoi() {
-  const { width, height } = mainImageData;
-  const points = Array((pointsToUse) | 0)
-    .fill(0)
-    .map((_, i) => ({
-      index: i,
-      x: getRandomFloat(0, width),
-      y: getRandomFloat(0, height),
-      color: getRandomColor(),
-      pixels: [],
-    }));
+  rerunBtn.disabled = true;
+  progressBar.style.opacity = 1;
+  setTimeout(function () {
+    const { width, height } = mainImageData;
+    const points = Array((pointsToUse) | 0)
+      .fill(0)
+      .map((_, i) => ({
+        index: i,
+        x: getRandomFloat(0, width),
+        y: getRandomFloat(0, height),
+        color: getRandomColor(),
+        pixels: [],
+      }));
 
-  const imageData = new ImageData(width, height);
+    const imageData = new ImageData(width, height);
 
-  for (let i = 0; i < mainImageData.data.length; i += 4) {
-    const x = (i / 4) % width;
-    const y = (i / 4 / width) | 0;
+    for (let i = 0; i < mainImageData.data.length; i += 4) {
+      const x = (i / 4) % width;
+      const y = (i / 4 / width) | 0;
 
-    const min = minDistance(x, y, points);
+      const min = minDistance(x, y, points);
 
-    min.pixels.push({
-      x,
-      y,
-      color: [
-        mainImageData.data[i],
-        mainImageData.data[i + 1],
-        mainImageData.data[i + 2],
-      ],
-    });
-  }
+      min.pixels.push({
+        x,
+        y,
+        color: [
+          mainImageData.data[i],
+          mainImageData.data[i + 1],
+          mainImageData.data[i + 2],
+        ],
+      });
+    }
 
-  points.forEach((point) => {
-    point.avg = average(point.pixels);
-    point.pixels.forEach((pixel) => {
-      const index = (pixel.y * width + pixel.x) * 4;
-      imageData.data[index] = point.avg[0];
-      imageData.data[index + 1] = point.avg[1];
-      imageData.data[index + 2] = point.avg[2];
-      imageData.data[index + 3] = 255;
-    });
-  });
-
-  ctx.putImageData(imageData, 0, 0);
-  if (showDotsCheckbox?.checked) {
     points.forEach((point) => {
-      ctx.fillStyle = "black";
-      ctx.fillRect(point.x, point.y, 2, 2);
-    });
-  }
-
-  function average(pixels) {
-    let sum = [0, 0, 0];
-    pixels.forEach(({ color }) => {
-      sum[0] += color[0];
-      sum[1] += color[1];
-      sum[2] += color[2];
-    });
-    return sum.map((s) => s / pixels.length);
-  }
-
-  function minDistance(x, y, points) {
-    let minPoint = null;
-    let min = Number.MAX_SAFE_INTEGER;
-    points.forEach((point) => {
-      const dist = distance(x, y, point.x, point.y);
-      if (dist < min) {
-        min = dist;
-        minPoint = point;
-      }
+      point.avg = average(point.pixels);
+      point.pixels.forEach((pixel) => {
+        const index = (pixel.y * width + pixel.x) * 4;
+        imageData.data[index] = point.avg[0];
+        imageData.data[index + 1] = point.avg[1];
+        imageData.data[index + 2] = point.avg[2];
+        imageData.data[index + 3] = 255;
+      });
     });
 
-    return minPoint;
-  }
+    ctx.putImageData(imageData, 0, 0);
+    
+    if (showDotsCheckbox?.checked) {
+      points.forEach((point) => {
+        ctx.fillStyle = "black";
+        ctx.fillRect(point.x, point.y, 2, 2);
+      });
+    }
+    setTimeout(function() {
+      rerunBtn.disabled = false;
+      progressBar.style.opacity = 0;
+    }, 300)
 
-  function distance(x1, y1, x2, y2) {
-    return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
-  }
+    function average(pixels) {
+      let sum = [0, 0, 0];
+      pixels.forEach(({ color }) => {
+        sum[0] += color[0];
+        sum[1] += color[1];
+        sum[2] += color[2];
+      });
+      return sum.map((s) => s / pixels.length);
+    }
+
+    function minDistance(x, y, points) {
+      let minPoint = null;
+      let min = Number.MAX_SAFE_INTEGER;
+      points.forEach((point) => {
+        const dist = distance(x, y, point.x, point.y);
+        if (dist < min) {
+          min = dist;
+          minPoint = point;
+        }
+      });
+
+      return minPoint;
+    }
+
+    function distance(x1, y1, x2, y2) {
+      return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
+    }
+  }, 1);
+
 }
 
 function resizeCanvas(width, height) {
