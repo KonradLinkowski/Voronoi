@@ -33,11 +33,24 @@ function calculate({ width, height, data }, { pointsToUse }) {
     })
   }
 
-  points.forEach(point => point.avg = average(point.pixels))
+  const imageData = new ImageData(width, height);
+  points.forEach((point) => {
+    point.avg = average(point.pixels)
+    point.pixels.forEach((pixel) => {
+      const index = (pixel.y * width + pixel.x) * 4;
+      imageData.data[index] = point.avg[0];
+      imageData.data[index + 1] = point.avg[1];
+      imageData.data[index + 2] = point.avg[2];
+      imageData.data[index + 3] = 255;
+    });
+  });
 
   postMessage({
     event: 'done',
-    data: points
+    data: {
+      imageData,
+      points
+    }
   })
 }
 

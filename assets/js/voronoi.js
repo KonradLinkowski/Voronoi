@@ -122,19 +122,7 @@ function voronoi() {
   })
 }
 
-function draw(points) {
-  const { width, height } = mainImageData;
-  const imageData = new ImageData(width, height);
-  points.forEach((point) => {
-    point.pixels.forEach((pixel) => {
-      const index = (pixel.y * width + pixel.x) * 4;
-      imageData.data[index] = point.avg[0];
-      imageData.data[index + 1] = point.avg[1];
-      imageData.data[index + 2] = point.avg[2];
-      imageData.data[index + 3] = 255;
-    });
-  });
-
+function draw({ imageData, points }) {
   ctx.putImageData(imageData, 0, 0);
   if (showDotsCheckbox?.checked) {
     points.forEach((point) => {
