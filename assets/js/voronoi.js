@@ -85,7 +85,7 @@ function handleFiles(file) {
       image.addEventListener("load", () => {
         resizeCanvas(width, height);
         mainImageData = getImageData(tempImage);
-        setTimeout(voronoi(), 0);
+        setTimeout(voronoi, 0);
       });
       image.src = reader.result;
     });
