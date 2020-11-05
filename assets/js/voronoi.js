@@ -10,16 +10,15 @@ const worker = new Worker('assets/js/worker.js')
 
 // settings
 let pointsToUse = 500;
+let mainImageData = null
 
-resizeCanvas(image.width, image.height);
-let mainImageData = getImageData(image);
+loadImage('assets/img/sunflower.jpg')
 
 const dropArea = document.getElementById("dropzone");
 const showDotsCheckbox = document.getElementById("showDotsCheckbox");
 const numPointsSlider = document.getElementById("numPointsSlider");
 const rerunBtn = document.getElementById("rerunBtn");
 
-voronoi();
 updatePoints();
 
 const button = document.getElementById('btn-download');
@@ -82,19 +81,25 @@ function handleFiles(file) {
   }
   const reader = new FileReader();
   reader.addEventListener("loadend", () => {
-    const tempImage = new Image();
-    tempImage.addEventListener("load", () => {
-      const { width, height } = tempImage;
-      image.addEventListener("load", () => {
-        resizeCanvas(width, height);
-        mainImageData = getImageData(tempImage);
-        setTimeout(voronoi, 0);
-      });
-      image.src = reader.result;
-    });
-    tempImage.src = reader.result;
+    loadImage(reader.result)
   });
   reader.readAsDataURL(file[0]);
+}
+
+function loadImage(src) {
+  image.hidden = true;
+  const tempImage = new Image();
+  tempImage.addEventListener("load", () => {
+    const { width, height } = tempImage;
+    image.onload = function() {
+      resizeCanvas(width, height);
+      mainImageData = getImageData(tempImage);
+      setTimeout(voronoi, 0);
+      image.hidden = false;
+    };
+    image.src = src
+  });
+  tempImage.src = src;
 }
 
 worker.addEventListener('message', ({ data }) => {
@@ -107,6 +112,7 @@ worker.addEventListener('message', ({ data }) => {
 })
 
 function voronoi() {
+  canvas.hidden = true;
   progressBar.hidden = false;
   worker.postMessage({
     imageData: mainImageData,
@@ -137,6 +143,7 @@ function draw(points) {
     });
   }
 
+  canvas.hidden = false;
   progressBar.hidden = true;
 }
 

@@ -30,7 +30,6 @@ header > h1{
   border: 2px solid #c6ccd6;
   margin: 2px;
   max-height: 200px;
-  display: flex;
 }
 
 .settings-container {
