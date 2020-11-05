@@ -1,9 +1,12 @@
 const canvas = document.querySelector("#genetic-canvas");
 const image = document.getElementById("genetic-image");
+const progressBar = document.querySelector('.progress-bar')
 
 const ctx = canvas.getContext("2d");
 const helpCanvas = document.createElement("canvas");
 const helpContext = helpCanvas.getContext("2d");
+
+const worker = new Worker('assets/js/worker.js')
 
 // settings
 let pointsToUse = 500;
@@ -85,7 +88,7 @@ function handleFiles(file) {
       image.addEventListener("load", () => {
         resizeCanvas(width, height);
         mainImageData = getImageData(tempImage);
-        setTimeout(voronoi(), 0);
+        setTimeout(voronoi, 0);
       });
       image.src = reader.result;
     });
@@ -94,39 +97,29 @@ function handleFiles(file) {
   reader.readAsDataURL(file[0]);
 }
 
-function voronoi() {
-  const { width, height } = mainImageData;
-  const points = Array((pointsToUse) | 0)
-    .fill(0)
-    .map((_, i) => ({
-      index: i,
-      x: getRandomFloat(0, width),
-      y: getRandomFloat(0, height),
-      color: getRandomColor(),
-      pixels: [],
-    }));
-
-  const imageData = new ImageData(width, height);
-
-  for (let i = 0; i < mainImageData.data.length; i += 4) {
-    const x = (i / 4) % width;
-    const y = (i / 4 / width) | 0;
-
-    const min = minDistance(x, y, points);
-
-    min.pixels.push({
-      x,
-      y,
-      color: [
-        mainImageData.data[i],
-        mainImageData.data[i + 1],
-        mainImageData.data[i + 2],
-      ],
-    });
+worker.addEventListener('message', ({ data }) => {
+  const eventHandlers = {
+    step: percentage => progressBar.value = percentage,
+    done: draw
   }
+  
+  eventHandlers[data.event](data.data)
+})
 
+function voronoi() {
+  progressBar.hidden = false;
+  worker.postMessage({
+    imageData: mainImageData,
+    settings: {
+      pointsToUse
+    }
+  })
+}
+
+function draw(points) {
+  const { width, height } = mainImageData;
+  const imageData = new ImageData(width, height);
   points.forEach((point) => {
-    point.avg = average(point.pixels);
     point.pixels.forEach((pixel) => {
       const index = (pixel.y * width + pixel.x) * 4;
       imageData.data[index] = point.avg[0];
@@ -144,33 +137,7 @@ function voronoi() {
     });
   }
 
-  function average(pixels) {
-    let sum = [0, 0, 0];
-    pixels.forEach(({ color }) => {
-      sum[0] += color[0];
-      sum[1] += color[1];
-      sum[2] += color[2];
-    });
-    return sum.map((s) => s / pixels.length);
-  }
-
-  function minDistance(x, y, points) {
-    let minPoint = null;
-    let min = Number.MAX_SAFE_INTEGER;
-    points.forEach((point) => {
-      const dist = distance(x, y, point.x, point.y);
-      if (dist < min) {
-        min = dist;
-        minPoint = point;
-      }
-    });
-
-    return minPoint;
-  }
-
-  function distance(x1, y1, x2, y2) {
-    return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
-  }
+  progressBar.hidden = true;
 }
 
 function resizeCanvas(width, height) {
@@ -187,16 +154,4 @@ function getImageData(image) {
   helpContext.clearRect(0, 0, helpCanvas.width, helpCanvas.height);
 
   return data;
-}
-
-function getRandomColor() {
-  return [getRandomInt(0, 255), getRandomInt(0, 255), getRandomInt(0, 255)];
-}
-
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
-}
-
-function getRandomFloat(min, max) {
-  return Math.random() * (max - min) + min;
 }

@@ -179,3 +179,7 @@ footer .github-link {
   font-weight: bold;
   line-height: 20px;
 }
+
+.progress-bar {
+  width: 100%;
+}
