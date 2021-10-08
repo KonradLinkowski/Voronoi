@@ -25,9 +25,14 @@ updatePoints();
 const button = document.getElementById('btn-download');
 
 button.addEventListener('click', (e) => {
-  const image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-
-  button.href = image;
+  const url = canvas.toDataURL();
+  const $link = document.createElement('a')
+  $link.download = "voronoi.png";
+  $link.href = url
+  $link.click()
+  $link.remove()
+  $img.onerror = console.error
+  $img.src = imageSrc
 });
 
 ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
