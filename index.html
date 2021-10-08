@@ -20,11 +20,27 @@
 			<canvas id="genetic-canvas" class="image"></canvas>
 		</div>
 	</div>
-	<div>
-		<a href="#" class="download-btn" id="btn-download">Download image</a>
-  </div>
   
   <div class="container">
+    <div class="dots-slider">
+      <label for="numPointsSlider">
+        <span>Number of points:</span>
+      </label>
+      <input
+        type="range"
+        min="1"
+        max="1000"
+        value="500"
+        id="numPointsSlider"
+      />
+      <input
+        type="number"
+        min="1"
+        max="1000"
+        value="500"
+        id="pointsChosen"
+      >
+    </div>
     <div class="settings-container">
       <div>
         <label>
@@ -33,24 +49,11 @@
       </div>
 
       <div>
-        <label
-          ><input
-            type="range"
-            min="100"
-            max="10000"
-            value="9500"
-            id="numPointsSlider"
-          />
-          <br />
-          <span id="pointsChosen"></span> Points</label
-        >
-      </div>
-
-      <div>
-        <button id="rerunBtn">Re-run</button>
+        <button class="btn" id="rerunBtn">Re-run</button>
       </div>
     </div>
     <progress class="progress-bar" hidden="true" value="0" min="0" max="1"></progress>
+    <button class="btn btn--download" hidden="true" id="btn-download">Download image</button>
   </div>
 
 	<div class="container">

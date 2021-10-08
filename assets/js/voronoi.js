@@ -17,14 +17,16 @@ let mainImageData = getImageData(image);
 const dropArea = document.getElementById("dropzone");
 const showDotsCheckbox = document.getElementById("showDotsCheckbox");
 const numPointsSlider = document.getElementById("numPointsSlider");
+const pointsChosen = document.getElementById("pointsChosen");
 const rerunBtn = document.getElementById("rerunBtn");
+const downloadButton = document.getElementById('btn-download');
+
 
 voronoi();
 updatePoints();
 
-const button = document.getElementById('btn-download');
 
-button.addEventListener('click', (e) => {
+downloadButton.addEventListener('click', (e) => {
   const url = canvas.toDataURL();
   const $link = document.createElement('a')
   $link.download = "voronoi.png";
@@ -49,15 +51,19 @@ button.addEventListener('click', (e) => {
 dropArea.addEventListener("drop", handleDrop, false);
 dropArea.addEventListener("input", handleChange, false);
 
-numPointsSlider.addEventListener("input", (e) => {
-  pointsToUse = 10000 - e.target.value || 1;
-  
-  updatePoints();
+pointsChosen.addEventListener("input", (e) => {
+  updatePoints(e.target.value);
 });
+
+numPointsSlider.addEventListener("input", (e) => {
+  updatePoints(e.target.value);
+});
+
 rerunBtn.addEventListener("click", voronoi);
 
-function updatePoints(){
-  document.getElementById("pointsChosen").innerHTML = pointsToUse;
+function updatePoints(value = 500){
+  pointsChosen.value = value;
+  numPointsSlider.value = value;
 }
 function preventDefaults(e) {
   e.preventDefault();
@@ -113,6 +119,7 @@ worker.addEventListener('message', ({ data }) => {
 
 function voronoi() {
   progressBar.hidden = false;
+  downloadButton.hidden = true;
   worker.postMessage({
     imageData: mainImageData,
     settings: {
@@ -143,6 +150,7 @@ function draw(points) {
   }
 
   progressBar.hidden = true;
+  downloadButton.hidden = false;
 }
 
 function resizeCanvas(width, height) {
