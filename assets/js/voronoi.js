@@ -1,12 +1,10 @@
 const canvas = document.querySelector("#genetic-canvas");
 const image = document.getElementById("genetic-image");
-const progressBar = document.querySelector('.progress-bar')
+const progressBar = document.querySelector('.progress-bar');
 
 const ctx = canvas.getContext("2d");
 const helpCanvas = document.createElement("canvas");
 const helpContext = helpCanvas.getContext("2d");
-
-const worker = new Worker('assets/js/worker.js')
 
 // settings
 let pointsToUse = 500;
@@ -21,20 +19,17 @@ const pointsChosen = document.getElementById("pointsChosen");
 const rerunBtn = document.getElementById("rerunBtn");
 const downloadButton = document.getElementById('btn-download');
 
-
+// Initial Voronoi diagram generation
 voronoi();
 updatePoints();
 
-
 downloadButton.addEventListener('click', (e) => {
   const url = canvas.toDataURL();
-  const $link = document.createElement('a')
+  const $link = document.createElement('a');
   $link.download = "voronoi.png";
-  $link.href = url
-  $link.click()
-  $link.remove()
-  $img.onerror = console.error
-  $img.src = imageSrc
+  $link.href = url;
+  $link.click();
+  $link.remove();
 });
 
 ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
@@ -61,10 +56,11 @@ numPointsSlider.addEventListener("input", (e) => {
 
 rerunBtn.addEventListener("click", voronoi);
 
-function updatePoints(value = 500){
+function updatePoints(value = 500) {
   pointsChosen.value = value;
   numPointsSlider.value = value;
 }
+
 function preventDefaults(e) {
   e.preventDefault();
   e.stopPropagation();
@@ -108,49 +104,77 @@ function handleFiles(file) {
   reader.readAsDataURL(file[0]);
 }
 
-worker.addEventListener('message', ({ data }) => {
-  const eventHandlers = {
-    step: percentage => progressBar.value = percentage,
-    done: draw
-  }
-  
-  eventHandlers[data.event](data.data)
-})
-
 function voronoi() {
   progressBar.hidden = false;
   downloadButton.hidden = true;
-  worker.postMessage({
-    imageData: mainImageData,
-    settings: {
-      pointsToUse
-    }
-  })
+
+  // Generate random points
+  const points = Array.from({ length: pointsToUse }, () => [
+    Math.random() * canvas.width,
+    Math.random() * canvas.height,
+  ]);
+
+  // Create Voronoi diagram using D3
+  const voronoi = d3.voronoi().extent([[0, 0], [canvas.width, canvas.height]]);
+  const diagram = voronoi(points);
+
+  // Draw the Voronoi diagram
+  drawVoronoi(diagram, points);
 }
 
-function draw(points) {
+function drawVoronoi(diagram, points) {
   const { width, height } = mainImageData;
   const imageData = new ImageData(width, height);
-  points.forEach((point) => {
-    point.pixels.forEach((pixel) => {
-      const index = (pixel.y * width + pixel.x) * 4;
-      imageData.data[index] = point.avg[0];
-      imageData.data[index + 1] = point.avg[1];
-      imageData.data[index + 2] = point.avg[2];
-      imageData.data[index + 3] = 255;
+  
+  diagram.polygons().forEach((polygon, index) => {
+    if (!polygon) return;
+    
+    ctx.beginPath();
+    polygon.forEach(([x, y], i) => {
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     });
+    ctx.closePath();
+    
+    // Get average color for the polygon
+    const avgColor = getAverageColor(polygon, points[index]);
+    
+    ctx.fillStyle = `rgba(${avgColor[0]}, ${avgColor[1]}, ${avgColor[2]}, 1)`;
+    ctx.fill();
   });
 
-  ctx.putImageData(imageData, 0, 0);
   if (showDotsCheckbox?.checked) {
-    points.forEach((point) => {
+    points.forEach(([x, y]) => {
       ctx.fillStyle = "black";
-      ctx.fillRect(point.x, point.y, 2, 2);
+      ctx.fillRect(x, y, 2, 2);
     });
   }
 
   progressBar.hidden = true;
   downloadButton.hidden = false;
+}
+
+function getAverageColor(polygon, point) {
+  const colors = [];
+
+  polygon.forEach(([x, y]) => {
+    const index = (Math.floor(y) * mainImageData.width + Math.floor(x)) * 4;
+    colors.push([
+      mainImageData.data[index],
+      mainImageData.data[index + 1],
+      mainImageData.data[index + 2],
+    ]);
+  });
+
+  const avgColor = colors.reduce((acc, color) => {
+    return [
+      acc[0] + color[0],
+      acc[1] + color[1],
+      acc[2] + color[2],
+    ];
+  }, [0, 0, 0]).map(c => c / colors.length);
+
+  return avgColor;
 }
 
 function resizeCanvas(width, height) {
