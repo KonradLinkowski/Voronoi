@@ -61,9 +61,10 @@ numPointsSlider.addEventListener("input", (e) => {
 
 rerunBtn.addEventListener("click", voronoi);
 
-function updatePoints(value = 500){
+function updatePoints(value = 500) {
   pointsChosen.value = value;
   numPointsSlider.value = value;
+  pointsToUse = value
 }
 function preventDefaults(e) {
   e.preventDefault();
@@ -113,7 +114,7 @@ worker.addEventListener('message', ({ data }) => {
     step: percentage => progressBar.value = percentage,
     done: draw
   }
-  
+
   eventHandlers[data.event](data.data)
 })
 
