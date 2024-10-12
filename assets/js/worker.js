@@ -1,10 +1,15 @@
-addEventListener('message', ({ data }) => calculate(data.imageData, data.settings));
+addEventListener('message', ({ data }) => {
+  const { imageData, settings } = data;
 
-// A simple Quadtree implementation for spatial indexing
+  // Directly access the image data and perform the Voronoi calculation
+  calculate(imageData, settings);
+});
+
+// A simple QuadTree implementation remains the same...
 class QuadTree {
   constructor(boundary, capacity) {
-    this.boundary = boundary; // { x, y, width, height }
-    this.capacity = capacity; // Max number of points in each node
+    this.boundary = boundary;
+    this.capacity = capacity;
     this.points = [];
     this.divided = false;
   }
@@ -22,7 +27,7 @@ class QuadTree {
   }
 
   insert(point) {
-    if (!this.contains(point)) return false; // Point is out of bounds
+    if (!this.contains(point)) return false;
 
     if (this.points.length < this.capacity) {
       this.points.push(point);
@@ -66,8 +71,9 @@ class QuadTree {
   }
 }
 
-function calculate({ width, height, data }, { pointsToUse }) {
-  // Pre-generate points array with random positions and colors
+function calculate(imageData, { pointsToUse }) {
+  const { width, height, data } = imageData; // Extract the image data components
+
   const points = new Array(pointsToUse | 0).fill(0).map((_, i) => ({
     index: i,
     x: getRandomFloat(0, width),
@@ -76,53 +82,37 @@ function calculate({ width, height, data }, { pointsToUse }) {
     pixels: [],
   }));
 
-  // Create a quadtree to store points for spatial queries
-  const quadTree = new QuadTree({ x: 0, y: 0, width, height }, 4); // Capacity of 4 points per node
-  points.forEach(point => quadTree.insert(point)); // Insert points into the quadtree
+  const quadTree = new QuadTree({ x: 0, y: 0, width, height }, 4);
+  points.forEach(point => quadTree.insert(point));
 
-  // Loop through image data once and assign each pixel to its closest point
   const totalPixels = data.length / 4;
   for (let i = 0; i < totalPixels; i++) {
     const x = i % width;
     const y = Math.floor(i / width);
 
-    // Find the nearest point (Voronoi region) for this pixel using the quadtree
     const nearestPoint = findNearestPoint(x, y, quadTree);
-
-    // Assign this pixel's color to the nearest point's pixel group
     nearestPoint.pixels.push({
       x,
       y,
       color: [
-        data[i * 4],       // Red
-        data[i * 4 + 1],   // Green
-        data[i * 4 + 2],   // Blue
+        data[i * 4], data[i * 4 + 1], data[i * 4 + 2],
       ],
     });
 
-    // Update progress every 10,000 pixels (arbitrary)
     if (i % 10000 === 0) {
-      postMessage({
-        event: 'step',
-        data: i / totalPixels
-      });
+      postMessage({ event: 'step', data: i / totalPixels });
     }
   }
 
-  // Compute the average color for each point based on its assigned pixels
   points.forEach(point => point.avg = average(point.pixels));
 
-  postMessage({
-    event: 'done',
-    data: points
-  });
+  postMessage({ event: 'done', data: points }, [imageData.data.buffer]); // Use transferable object for efficiency
 }
 
-// Find the nearest point using a spatial query
 function findNearestPoint(x, y, quadTree) {
-  const range = { x, y, width: 1, height: 1 }; // Define a range for querying
+  const range = { x, y, width: 1, height: 1 };
   const foundPoints = [];
-  quadTree.query(range, foundPoints); // Query the quadtree
+  quadTree.query(range, foundPoints);
 
   let nearestPoint = null;
   let minDistance = Infinity;
@@ -138,9 +128,8 @@ function findNearestPoint(x, y, quadTree) {
   return nearestPoint;
 }
 
-// Calculate the average color of the pixels assigned to a point
 function average(pixels) {
-  const sum = [0, 0, 0]; // RGB sum
+  const sum = [0, 0, 0];
 
   for (let i = 0; i < pixels.length; i++) {
     const pixelColor = pixels[i].color;
@@ -152,12 +141,10 @@ function average(pixels) {
   const pixelCount = pixels.length;
   return pixelCount === 0
     ? [0, 0, 0]
-    : sum.map(s => Math.floor(s / pixelCount)); // Return average color
+    : sum.map(s => Math.floor(s / pixelCount));
 }
 
-// Utility Functions
 function distance(x1, y1, x2, y2) {
-  // Simple Euclidean distance
   return Math.hypot(x1 - x2, y1 - y2);
 }
 

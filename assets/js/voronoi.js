@@ -21,20 +21,16 @@ const pointsChosen = document.getElementById("pointsChosen");
 const rerunBtn = document.getElementById("rerunBtn");
 const downloadButton = document.getElementById('btn-download');
 
-
 voronoi();
 updatePoints();
-
 
 downloadButton.addEventListener('click', (e) => {
   const url = canvas.toDataURL();
   const $link = document.createElement('a')
   $link.download = "voronoi.png";
-  $link.href = url
-  $link.click()
-  $link.remove()
-  $img.onerror = console.error
-  $img.src = imageSrc
+  $link.href = url;
+  $link.click();
+  $link.remove();
 });
 
 ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
@@ -64,8 +60,9 @@ rerunBtn.addEventListener("click", voronoi);
 function updatePoints(value = 500) {
   pointsChosen.value = value;
   numPointsSlider.value = value;
-  pointsToUse = value
+  pointsToUse = value;
 }
+
 function preventDefaults(e) {
   e.preventDefault();
   e.stopPropagation();
@@ -109,29 +106,28 @@ function handleFiles(file) {
   reader.readAsDataURL(file[0]);
 }
 
+function voronoi() {
+  progressBar.hidden = false;
+  downloadButton.hidden = true;
+
+  worker.postMessage({
+    imageData: mainImageData,
+    settings: { pointsToUse }
+  }, [mainImageData.data.buffer]); // Transfer the buffer
+}
+
 worker.addEventListener('message', ({ data }) => {
   const eventHandlers = {
     step: percentage => progressBar.value = percentage,
     done: draw
-  }
-
-  eventHandlers[data.event](data.data)
-})
-
-function voronoi() {
-  progressBar.hidden = false;
-  downloadButton.hidden = true;
-  worker.postMessage({
-    imageData: mainImageData,
-    settings: {
-      pointsToUse
-    }
-  })
-}
+  };
+  eventHandlers[data.event](data.data);
+});
 
 function draw(points) {
   const { width, height } = mainImageData;
   const imageData = new ImageData(width, height);
+  
   points.forEach((point) => {
     point.pixels.forEach((pixel) => {
       const index = (pixel.y * width + pixel.x) * 4;
@@ -143,6 +139,7 @@ function draw(points) {
   });
 
   ctx.putImageData(imageData, 0, 0);
+
   if (showDotsCheckbox?.checked) {
     points.forEach((point) => {
       ctx.fillStyle = "black";
@@ -155,17 +152,13 @@ function draw(points) {
 }
 
 function resizeCanvas(width, height) {
-  canvas.width = helpCanvas.width = width;
-  canvas.height = helpCanvas.height = height;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  canvas.width = width;
+  canvas.height = height;
 }
 
 function getImageData(image) {
   helpCanvas.width = image.width;
   helpCanvas.height = image.height;
   helpContext.drawImage(image, 0, 0);
-  const data = helpContext.getImageData(0, 0, image.width, image.height);
-  helpContext.clearRect(0, 0, helpCanvas.width, helpCanvas.height);
-
-  return data;
+  return helpContext.getImageData(0, 0, image.width, image.height);
 }
